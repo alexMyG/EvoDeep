@@ -1,0 +1,140 @@
+{
+  "layers": {
+    "Dense": {
+      "in" : "vector",
+      "out" : "vector",
+      "parameters": {
+        "init" : {
+          "values" : ["uniform", "lecun_uniform", "normal", "zero", "glorot_normal", "glorot_uniform", "he_normal", "he_uniform"],
+          "type" : "categorical"
+        },
+        "activation" : {
+          "values" : ["relu", "softmax", "softplus", "softsign", "tanh", "sigmoid", "hard_sigmoid", "linear"],
+          "type" : "categorical"
+        },
+        "output_dim" : {
+          "values" : [10, 500, 10],
+          "type" : "range"
+        }
+      }
+    },
+    "Dropout" : {
+      "in" : "vector",
+      "out" : "vector",
+      "parameters" : {
+        "p": {
+          "values": [0.1, 0.8],
+          "type": "rangeDouble"
+        }
+      }
+    },
+    "Convolution2D" : {
+      "in" : "matrix4D",
+      "out" : "matrix4D",
+      "parameters" : {
+        "nb_filter" : {
+          "values" : [5, 50, 5],
+          "type" : "range"
+        },
+        "nb_row" : {
+          "values" : [3, 15, 2],
+          "type" : "range"
+        },
+        "nb_col" : {
+          "values" : [3, 15, 2],
+          "type" : "range"
+        },
+        "init" : {
+          "values" : ["uniform", "lecun_uniform", "normal", "zero", "glorot_normal", "glorot_uniform", "he_normal", "he_uniform"],
+          "type" : "categorical"
+        },
+        "activation" : {
+          "values" : ["relu", "softplus", "softsign", "tanh", "sigmoid", "hard_sigmoid", "linear"],
+          "type" : "categorical"
+        },
+        "border_mode" : {
+          "values" : ["valid", "same"],
+          "type" : "categorical"
+        },
+        "bias" : {
+          "type" : "boolean"
+        },
+        "dim_ordering" : {
+          "values" : ["tf"],
+          "type" : "categorical"
+        }
+      }
+
+    },
+    "MaxPooling2D" : {
+      "in" : "matrix4D",
+      "out" : "matrix4D",
+      "parameters" : {
+        "pool_size" : {
+          "values" : [2,6,1],
+          "size" : 2,
+          "type" : "2Drange"
+        },
+        "strides" : {
+          "values" : [2, 3, 4, 5, 6, null],
+          "type" : "categoricalNumeric"
+        },
+        "border_mode" : {
+          "values" : ["valid", "same"],
+          "type" : "categorical"
+        },
+        "dim_ordering" : {
+          "values" : ["tf"],
+          "type" : "categorical"
+        }
+      }
+    },
+    "Reshape" : {
+      "in" : "vector",
+      "out" : "matrix",
+      "parameters" : {
+        "target_shape" : {
+          "aspect_ratio" : 1.0,
+          "type" : "matrixRatio"
+        }
+      }
+    },
+    "Flatten" : {
+      "in" : "matrix",
+      "out" : "vector"
+    }
+  },
+  "global_parameters" : {
+        "optimizer" : {
+          "values" : ["adam", "sgd", "rmsprop", "adagrad", "adamax", "nadam"],
+          "type" : "categorical"
+        },
+        "nb_epoch": {
+          "values" : [2, 20, 2],
+          "type" : "range"
+        },
+        "batch_size": {
+          "values" : [100, 5000, 100],
+          "type" : "range"
+        },
+        "number_layers": {
+          "values" : [3, 20, 1],
+          "type" : "range"
+        }
+  },
+  "fsm": {
+    "alphabet": ["Reshape", "Dense", "Dropout", "Convolution2D", "MaxPooling2D", "Flatten"],
+    "states": ["inicial", "Dense", "Reshape", "Dropout", "Flatten", "Convolution2D", "MaxPooling2D", "Dense_"],
+    "initial": "inicial",
+    "finals": ["Dense"],
+    "map": {
+      "inicial": {"Dense": "Dense_", "Reshape": "Reshape", "Dropout": "Dropout"},
+      "Dense": {"Dense": "Dense", "Reshape": "Reshape", "Dropout": "Dropout"},
+      "Reshape": {"Convolution2D": "Convolution2D"},
+      "Dropout": {"Reshape": "Reshape", "Dense": "Dense"},
+      "Flatten": {"Dense": "Dense", "Dropout": "Dropout"},
+      "Convolution2D": {"Flatten": "Flatten", "Convolution2D": "Convolution2D", "MaxPooling2D": "MaxPooling2D"},
+      "MaxPooling2D": {"Flatten": "Flatten", "Convolution2D": "Convolution2D"},
+      "Dense_": {"Dense": "Dense", "Dropout": "Dropout", "Reshape": "Reshape"}}
+  }
+}
