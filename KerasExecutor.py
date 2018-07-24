@@ -8,7 +8,6 @@ from numpy.ma import true_divide
 from sklearn import preprocessing
 from sklearn.cross_validation import train_test_split
 
-# os.environ['KERAS_BACKEND'] = "tensorflow"  # This must be invoked before importing keras
 from keras.models import Sequential
 from keras.layers import Dense, Reshape, Flatten, MaxPooling2D
 from keras.layers import Dropout, Convolution2D
@@ -27,16 +26,12 @@ class KerasExecutor:
         self.early_stopping_patience = early_stopping_patience
         self.loss = loss
 
-        # Carga del dataset
-        # data = pd.read_csv(self.dataset, sep=',')
+
         data = dataset["data"]
-        # self.x = data
 
         self.x = true_divide(data, 255)
 
         y = dataset["target"]
-        # self.x = data.iloc[1:, self.first_data_column:-1].as_matrix()
-        # y = data.iloc[1:, -1].as_matrix()
 
         le = preprocessing.LabelEncoder()
         le.fit(y)
@@ -53,28 +48,13 @@ class KerasExecutor:
 
         model = Sequential()
 
-        # last_num_neurons = self.n_in
-
-        # print(individual)
         list_layers_names = [l.type for l in individual.net_struct]
         print ",".join(list_layers_names)
 
-
-
-
-
-
-
-
-
         for index, layer in enumerate(individual.net_struct):
-
-            # print "Adding layer " + layer.type
-            # pprint.pprint(layer.parameters)
 
             if layer.type == "Dense":
                 model.add(Dense(**layer.parameters))
-                # last_num_neurons = layer.parameters["output_dim"]
 
             elif layer.type == "Dropout":
                 model.add(Dropout(**layer.parameters))
@@ -112,53 +92,19 @@ class KerasExecutor:
 
             elif layer.type == "Flatten":
                 model.add(Flatten(**layer.parameters))
-                # last_num_neurons = layer.parameters["output_dim"]
 
-            # print "Added layer " + layer.type + " with input shape: " + str(model.input_shape)+ " -- output shape: " +\
-            #       str(model.output_shape)
-
-
-            """
-
-
-            if layer.type_layer == 'Dense' or index == len(individual.net_struct) - 1:
-
-                init = layer.arguments['init']
-                activation = layer.arguments['activation']
-
-                if index == 0:
-
-                    model.add(Dense(layer.arguments['num_outputs'], input_dim=len(train[1]), init=init,
-                                    activation=activation))
-
-                elif index == len(individual.net_struct) - 1:
-
-                    model.add(Dense(self.n_out, init=init, activation=activation))
-
-                else:
-
-                    model.add(Dense(layer.arguments['num_outputs'], init=init, activation=activation))
-
-            if layer.type_layer == 'Dropout' and len(individual.net_struct) - 1 > index:
-
-                p = layer.arguments['p']
-
-                if index == 0:
-
-                    model.add(Dropout(p, input_shape=(len(train[1]),)))
-                else:
-                    model.add(Dropout(p))
-            """
-
+        # Train validation split
         train, validation, target_train, target_validation = train_test_split(train, target_train, test_size=0.2,
                                                                               random_state=int(time.time()))
 
         model.compile(loss=self.loss, optimizer=individual.global_attributes.optimizer, metrics=self.metrics)
 
+        # Stop criteria definition
         callbacks_array = [
             callbacks.EarlyStopping(monitor='val_acc', min_delta=0.00001, patience=self.early_stopping_patience, verbose=0,
                                     mode='max')]
 
+        # Running model
         hist = model.fit(train, target_train, nb_epoch=individual.global_attributes.nb_epoch,
                          batch_size=individual.global_attributes.batch_size,
                          verbose=0, callbacks=callbacks_array, validation_data=(validation, target_validation)).__dict__

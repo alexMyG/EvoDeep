@@ -67,7 +67,6 @@ def get_string_parameters():
     output_string += "Prob cross: " + str(args.cxpb) + "\n"
     output_string += "Prob mut: " + str(args.mutpb) + "\n"
     output_string += "prob_add_layer: " + str(args.newpb) + "\n"
-    # TODO: Este 5 debería ir por parámetros
     output_string += "MAX_GENERATIONS_NO_CHANGES: " + str(MAX_GENERATIONS_NO_CHANGES) + "\n"
     return output_string
 
@@ -93,12 +92,11 @@ if __name__ == "__main__":
                         help='Multi-threaded execution')
     args = parser.parse_args()
 
-    # random.seed(args.seed)
-    # numpy.random.seed(args.seed)
+
 
     #dataset = fetch_mldata('MNIST original')
 
-
+    # Loading MNIST dataset
     mnist_alternative_url = "https://github.com/amplab/datascience-sp14/raw/master/lab7/mldata/mnist-original.mat"
     mnist_path = "./mnist-original.mat"
     response = urllib.urlopen(mnist_alternative_url)
@@ -117,33 +115,30 @@ if __name__ == "__main__":
 
     print "EXECUTION ID: " + str(execution_id)
 
+    # Loading parameters file
     configuration = Configuration(args.paramFile)
     test_size = args.test_size
+
+    # Starting keras module
     ke = KerasExecutor(dataset, test_size, metrics, early_stopping_patience, loss)
 
+    # Creating fitness function and individual
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-
     creator.create("Individual", Individual, fitness=creator.FitnessMax)
 
     toolbox = base.Toolbox()
 
     #####################
-    #####################
 
-    #####################
-    #####################
-
-
+    # Defining genetic search
     toolbox.register("individual", creator.Individual, config=configuration,
                      n_global_in=deepcopy(ke.n_in),
                      n_global_out=deepcopy(ke.n_out))
 
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
-    print "Defining operators..."
+    # Defining operators...
     toolbox.register("evaluate", eval_keras, ke=deepcopy(ke))
-    # toolbox.register("evaluate", dummy_eval)
-
 
     toolbox.register("mate", complete_crossover, indpb=0.5, config=configuration)
     toolbox.register("mutate", complete_mutation, indpb=0.5,
@@ -160,14 +155,14 @@ if __name__ == "__main__":
     stats.register("max", numpy.max, axis=0)
     stats.register("time", timing)
     hof = tools.HallOfFame(args.lamb, similar=compare_individuals)
-    # hof = tools.ParetoFront(similar=compare_individuals)
 
 
-    # Parallelization of the algorithm
+    # Parallelization (individuals are evaluated in parallel)
     if args.parallel:
         pool = multiprocessing.Pool()
         toolbox.register("map", pool.map)
 
+    # Running genetic algorithm
     pop, logbook = eaMuPlusLambdaModified(population=population, toolbox=toolbox, mu=args.mu,
                                           lambda_=args.lamb, cxpb=args.cxpb,
                                           mutpb=args.mutpb, ngen=args.ngen, stats=stats, halloffame=hof)
@@ -177,6 +172,7 @@ if __name__ == "__main__":
     file_individuals = ""
     file_individuals += get_string_parameters()
 
+    # Generating results
     for index, individual in enumerate(hof):
         accuracy_validation, number_layers, accuracy_training, accuracy_test = individual.my_fitness
 

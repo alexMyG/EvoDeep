@@ -30,6 +30,9 @@ def eval_keras(individual, ke):
 
 
 def compare_individuals(ind1, ind2):
+    """
+    This function is used to check if two individuals object refer to the same individual definition (network structure)
+    """
     ind1_string = ind1.toString().replace("\t", "").replace("\n", "").replace(" ", "")
     ind2_string = ind2.toString().replace("\t", "").replace("\n", "").replace(" ", "")
 
@@ -82,19 +85,17 @@ def eaMuPlusLambdaModified(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
     # Begin the generational process
     for gen in range(1, ngen + 1):
 
-        # Vary the population
-        # offspring = algorithms.varOr(population, toolbox, lambda_, cxpb, mutpb)
 
         offspring = []
         for _ in xrange(lambda_):
-            # Seleccion aleatoria
+            # Random selection
             ind1, ind2 = map(toolbox.clone, random.sample(population, 2))
-            # Cruce
+            # Crossover
             if random.random() < cxpb:
                 ind1, ind2 = toolbox.mate(ind1, ind2)
                 del ind1.fitness.values
                 del ind2.fitness.values
-            # Mutacion
+            # Mutation
             if random.random() < mutpb:
                 ind1 = toolbox.mutate(ind1)
                 del ind1.fitness.values
@@ -116,7 +117,6 @@ def eaMuPlusLambdaModified(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
         if halloffame is not None:
             halloffame.update(offspring)
 
-        # TODO: Parametrizar 5
         if num_generations_no_changes > 5:
             print "MAX GENERATIONS WITH NO CHANGES REACHED. Stopping..."
             record = stats.compile(population) if stats is not None else {}
@@ -180,7 +180,6 @@ class Individual(object):
                             finals={"Dense"},
                             map=config.fsm['map'])
 
-        # TODO: sacar numero de capas inicial a parametros
         candidates = list(itertools.takewhile(lambda c: len(c) <= n_layers_start,
                                               itertools.dropwhile(lambda l: len(l) < num_min,
                                                                   state_machine.strings())))
@@ -193,7 +192,6 @@ class Individual(object):
         random_size = random.choice(sizes)
         candidates = filter(lambda c: len(c) == random_size, candidates)
 
-        #print str(candidates)
         candidate = random.choice(candidates)
         candidate = map(lambda lt: Layer([lt], config), candidate)
         self.net_struct = candidate
@@ -226,7 +224,7 @@ class Individual(object):
 
 class Layer:
     """
-    Clase que representa a cada capa del workflow de Keras
+    Class representing each layer of the Keras workflow
     """
 
     def __init__(self, possible_layers, config, layer_position=None, n_input_outputs=None):
@@ -257,7 +255,7 @@ class Layer:
             # self.type = 'Dense'
             self.parameters['input_shape'] = (n_input_outputs,)
         if layer_position == 'last':
-            # TODO QUITA LA ÑAPA, SEGUNDO AVISO
+            # Last layer is forced to be dense
             self.type = 'Dense'
             self.parameters = dict()
             for param in config.layers[self.type].keys():
