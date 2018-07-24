@@ -29,12 +29,12 @@ class KerasExecutor:
 
         # Carga del dataset
         # data = pd.read_csv(self.dataset, sep=',')
-        data = dataset["data"][1:10]
+        data = dataset["data"]
         # self.x = data
 
         self.x = true_divide(data, 255)
 
-        y = dataset["target"][1:10]
+        y = dataset["target"]
         # self.x = data.iloc[1:, self.first_data_column:-1].as_matrix()
         # y = data.iloc[1:, -1].as_matrix()
 

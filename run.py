@@ -55,7 +55,7 @@ def timing(_):
 def get_string_parameters():
 
     output_string = ""
-    output_string += "Dataset: " + dataset.DESCR + "\n"
+    output_string += "Dataset: " + "MNIST" + "\n"
     output_string += "Test size: " + str(test_size) + "\n"
     output_string += "Early stopping patience: " + str(early_stopping_patience) + "\n"
     output_string += "Loss: " + loss + "\n"
