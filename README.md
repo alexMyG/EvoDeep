@@ -12,7 +12,7 @@ Alejandro Martín, Raúl Lara-Cabrera, Félix Fuentes-Hurtado, Valery Naranjo, D
 ##### Documentation
 For a full description of EvoDeep, please read the following publication:
 
-> Martín, Alejandro, et al. "EvoDeep: A new evolutionary approach for automatic Deep Neural Networks parametrisation." Journal of Parallel and Distributed Computing 117 (2018): 180-191.
+> Martín, Alejandro, et al. "EvoDeep: A new evolutionary approach for automatic Deep Neural Networks parametrisation." Journal of Parallel and Distributed Computing 117 (2018): 180-191. [Link]
 
 [Link]: https://www.researchgate.net/publication/320307342_EvoDeep_a_new_Evolutionary_approach_for_automatic_Deep_Neural_Networks_parametrisation
 
