@@ -10,6 +10,8 @@ from greenery.fsm import fsm
 
 
 def dummy_eval(individual):
+    print(str(individual.toString))
+
     return random.random(), random.randrange(2, 10), random.random(), random.random(),
 
 
@@ -20,9 +22,9 @@ def eval_keras(individual, ke):
     my_ke = deepcopy(ke)
 
     metrics_names, scores_training, scores_validation, scores_test, model = my_ke.execute(individual)
-    accuracy_training = scores_training[metrics_names.index("acc")]
-    accuracy_validation = scores_validation[metrics_names.index("acc")]
-    accuracy_test = scores_test[metrics_names.index("acc")]
+    accuracy_training = scores_training[metrics_names.index("accuracy")]
+    accuracy_validation = scores_validation[metrics_names.index("accuracy")]
+    accuracy_test = scores_test[metrics_names.index("accuracy")]
 
     number_layers = individual.global_attributes.number_layers
 
@@ -76,18 +78,18 @@ def eaMuPlusLambdaModified(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
     record = stats.compile(population) if stats is not None else {}
     logbook.record(gen=0, nevals=len(invalid_ind), **record)
     if verbose:
-        print logbook.stream
+        print(logbook.stream)
 
     prev_avg = record["avg"]
 
     num_generations_no_changes = 0
-    print "Size of the population is: " + str(len(population))
+    print("Size of the population is: " + str(len(population)))
     # Begin the generational process
     for gen in range(1, ngen + 1):
 
 
         offspring = []
-        for _ in xrange(lambda_):
+        for _ in range(lambda_):
             # Random selection
             ind1, ind2 = map(toolbox.clone, random.sample(population, 2))
             # Crossover
@@ -118,11 +120,11 @@ def eaMuPlusLambdaModified(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
             halloffame.update(offspring)
 
         if num_generations_no_changes > 5:
-            print "MAX GENERATIONS WITH NO CHANGES REACHED. Stopping..."
+            print("MAX GENERATIONS WITH NO CHANGES REACHED. Stopping...")
             record = stats.compile(population) if stats is not None else {}
             logbook.record(gen=gen, nevals=len(invalid_ind), **record)
             if verbose:
-                print logbook.stream
+                print(logbook.stream)
             return population, logbook
 
         # Select the next generation population
@@ -132,7 +134,7 @@ def eaMuPlusLambdaModified(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
         record = stats.compile(population) if stats is not None else {}
         logbook.record(gen=gen, nevals=len(invalid_ind), **record)
         if verbose:
-            print logbook.stream
+            print(logbook.stream)
 
         new_avg = record["avg"]
         same_array = True
@@ -147,7 +149,7 @@ def eaMuPlusLambdaModified(population, toolbox, mu, lambda_, cxpb, mutpb, ngen,
             num_generations_no_changes += 1
         prev_avg = new_avg
 
-        print "Size of the population is: " + str(len(population))
+        print("Size of the population is: " + str(len(population)))
 
     return population, logbook
 
@@ -190,13 +192,13 @@ class Individual(object):
 
         sizes = list(set(map(len, candidates)))
         random_size = random.choice(sizes)
-        candidates = filter(lambda c: len(c) == random_size, candidates)
+        candidates = list(filter(lambda c: len(c) == random_size, candidates))
 
         candidate = random.choice(candidates)
-        candidate = map(lambda lt: Layer([lt], config), candidate)
+        candidate = list(map(lambda lt: Layer([lt], config), candidate))
         self.net_struct = candidate
-        self.net_struct[0].parameters['input_shape'] = (n_global_in,)
-        self.net_struct[-1].parameters['output_dim'] = n_global_out
+        self.net_struct[0].parameters['input_shape'] = (int(n_global_in),)
+        self.net_struct[-1].parameters['units'] = n_global_out
         self.global_attributes.number_layers = len(self.net_struct)
 
     def toString(self):
@@ -253,7 +255,7 @@ class Layer:
         # Deal with number of neurons in first and last layer
         if layer_position == 'first':
             # self.type = 'Dense'
-            self.parameters['input_shape'] = (n_input_outputs,)
+            self.parameters['input_shape'] = (int(n_input_outputs),)
         if layer_position == 'last':
             # Last layer is forced to be dense
             self.type = 'Dense'
@@ -268,7 +270,7 @@ class Layer:
             self.parameters['output_dim'] = n_input_outputs
 
     def __repr__(self):
-        return "[" + self.type[:2] + "(" + "|".join(map(lambda (k, v): k[:4] + ":" + str(v), self.parameters.items())) + ")]"
+        return "[" + self.type[:2] + "(" + "|".join(map(lambda k: k[0][:4] + ":" + str(k[1]), self.parameters.items())) + ")]"
 
 
 def create_random_valid_layer(config, last_layer_output_type, n_input_outputs=None, layer_position=None):
@@ -319,7 +321,7 @@ def parser_parameter_types(parameter_config, parameter):
         return bool(random.getrandbits(1))
 
     else:
-        print "PARAMETER " + parameter + " NOT DEFINED"
+        print("PARAMETER " + parameter + " NOT DEFINED")
 
 
 def generate_random_global_parameter(parameter_name, configuration):

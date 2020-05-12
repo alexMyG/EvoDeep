@@ -4,7 +4,7 @@
       "in" : "vector",
       "out" : "vector",
       "parameters": {
-        "init" : {
+        "kernel_initializer" : {
           "values" : ["uniform", "lecun_uniform", "normal", "zero", "glorot_normal", "glorot_uniform", "he_normal", "he_uniform"],
           "type" : "categorical"
         },
@@ -12,7 +12,7 @@
           "values" : ["relu", "softmax", "softplus", "softsign", "tanh", "sigmoid", "hard_sigmoid", "linear"],
           "type" : "categorical"
         },
-        "output_dim" : {
+        "units" : {
           "values" : [10, 500, 10],
           "type" : "range"
         }
@@ -22,7 +22,7 @@
       "in" : "vector",
       "out" : "vector",
       "parameters" : {
-        "p": {
+        "rate": {
           "values": [0.1, 0.8],
           "type": "rangeDouble"
         }
@@ -32,19 +32,15 @@
       "in" : "matrix4D",
       "out" : "matrix4D",
       "parameters" : {
-        "nb_filter" : {
+        "filters" : {
           "values" : [5, 50, 5],
           "type" : "range"
         },
-        "nb_row" : {
+        "kernel_size" : {
           "values" : [3, 15, 2],
           "type" : "range"
         },
-        "nb_col" : {
-          "values" : [3, 15, 2],
-          "type" : "range"
-        },
-        "init" : {
+        "kernel_initializer" : {
           "values" : ["uniform", "lecun_uniform", "normal", "zero", "glorot_normal", "glorot_uniform", "he_normal", "he_uniform"],
           "type" : "categorical"
         },
@@ -52,15 +48,15 @@
           "values" : ["relu", "softplus", "softsign", "tanh", "sigmoid", "hard_sigmoid", "linear"],
           "type" : "categorical"
         },
-        "border_mode" : {
-          "values" : ["valid", "same"],
+        "padding" : {
+          "values" : ["same"],
           "type" : "categorical"
         },
-        "bias" : {
+        "use_bias" : {
           "type" : "boolean"
         },
-        "dim_ordering" : {
-          "values" : ["tf"],
+        "data_format" : {
+          "values" : ["channels_last"],
           "type" : "categorical"
         }
       }
@@ -79,12 +75,12 @@
           "values" : [2, 3, 4, 5, 6, null],
           "type" : "categoricalNumeric"
         },
-        "border_mode" : {
-          "values" : ["valid", "same"],
+        "padding" : {
+          "values" : ["same"],
           "type" : "categorical"
         },
-        "dim_ordering" : {
-          "values" : ["tf"],
+        "data_format" : {
+          "values" : ["channels_last"],
           "type" : "categorical"
         }
       }
@@ -109,7 +105,7 @@
           "values" : ["adam", "sgd", "rmsprop", "adagrad", "adamax", "nadam"],
           "type" : "categorical"
         },
-        "nb_epoch": {
+        "epochs": {
           "values" : [2, 20, 2],
           "type" : "range"
         },

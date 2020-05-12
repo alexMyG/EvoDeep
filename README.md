@@ -1,6 +1,8 @@
 # EvoDeep
 ### A new Evolutionary approach for automatic Deep Neural Networks parametrisation
 
+## Update to Python 3
+
 This repository contains the necessary code to run EvoDeep, an evolutionary approach to adjust Deep Neural Network parameters
 
 ##### Authors

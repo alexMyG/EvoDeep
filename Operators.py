@@ -9,9 +9,11 @@ from greenery.fsm import fsm
 # from deap import tools
 from algorithm import Layer, generate_random_global_parameter, generate_random_layer_parameter, \
     create_random_valid_layer
-
+import sys
 
 def complete_crossover(ind1, ind2, indpb, config):
+
+
     """
     Performs a different crossover:
         External: It involves global parameters and layers as whole elements
@@ -85,10 +87,10 @@ def cut_splice_crossover(layers1, layers2, max_layers, config):
 
     # Una vez fijado el punto de corte del primer individuo se calculan los posibles puntos de corte en el segundo
     # para que al cruzar los trozos se mantenga una configuracion de capas validas (in/out)
-    possible_positions = [p for (p, l) in filter(lambda(_p, _l):
-                                                 _l.type == layers1[cxpoint1].type and
-                                                 cxpoint1 + len(layers2) - _p <= max_layers and
-                                                 len(layers1) - cxpoint1 + _p <= max_layers,
+    possible_positions = [p for (p, l) in filter(lambda _p:
+                                                 _p[1].type == layers1[cxpoint1].type and
+                                                 cxpoint1 + len(layers2) - _p[0] <= max_layers and
+                                                 len(layers1) - cxpoint1 + _p[0] <= max_layers,
                                                  list(enumerate(layers2))[1:-1])]   # [1:-1] except first and last layer
 
     if possible_positions:
@@ -173,7 +175,7 @@ def internal_mutation_fsm(ind, indpb, new_layer_pb, config):
         layer_type = ind.net_struct[pos_layer].type
         for parameter in parameters_dict.keys():
             # TODO QUITA LA ÑAPA Alex
-            if random.random() < indpb and parameter != 'input_shape' and parameter != 'output_dim':
+            if random.random() < indpb and parameter != 'input_shape' and parameter != 'units':
                 parameters_dict[parameter] = generate_random_layer_parameter(parameter, layer_type, config)
 
     if random.random() < new_layer_pb:
@@ -204,11 +206,11 @@ def internal_mutation_fsm(ind, indpb, new_layer_pb, config):
         if sizes:
             # Chooses a size of candidate...
             random_size = random.choice(sizes)
-            candidates_size = filter(lambda c: len(c) == random_size, candidates)
+            candidates_size = list(filter(lambda c: len(c) == random_size, candidates))
             if candidates_size:
                 # ... and selects it as the layers to be inserted
                 candidate = random.choice(candidates_size)
-                candidate = map(lambda lt: Layer([lt], config), candidate)
+                candidate = list(map(lambda lt: Layer([lt], config), candidate))
                 # Updates the individual with new layers
                 ind.net_struct = ind.net_struct[:position+1] + candidate[1:-1] + ind.net_struct[position + 1:]
 
@@ -234,7 +236,7 @@ def internal_mutation_with_restrictions(ind, indpb, new_layer_pb, config):
         layer_type = ind.net_struct[pos_layer].type
         for parameter in parameters_dict.keys():
             # TODO QUITA LA ÑAPA Alex, pero se puede dejar por el momento
-            if random.random() < indpb and parameter != 'input_shape' and parameter != 'output_dim':
+            if random.random() < indpb and parameter != 'input_shape' and parameter != 'units':
                 parameters_dict[parameter] = generate_random_layer_parameter(parameter, layer_type, config)
 
     if num_layers <= config.global_parameters['number_layers']['values'][1] and random.random() < new_layer_pb:

@@ -2,25 +2,31 @@
 import argparse
 import json
 import random
-import urllib
+import urllib.request
 from scipy.io import loadmat
 import time
 from greenery.fsm import fsm
 
 import multiprocessing
-
+import os
 import itertools
 import numpy
 import yaml
 from copy import deepcopy
 from deap import creator, base
 from deap import tools
-from sklearn.datasets import fetch_mldata
 from KerasExecutor import KerasExecutor
 from Operators import complete_crossover, complete_mutation
 from algorithm import eval_keras, compare_individuals, Individual, eaMuPlusLambdaModified, dummy_eval
 
 MAX_GENERATIONS_NO_CHANGES = 5
+
+"""
+EXPERIMENTS:
+- 0: MNIST
+"""
+
+EXPERIMENT = 0
 
 #############################################
 # EXTRA CLASSES DEFINITION
@@ -36,6 +42,34 @@ metrics = ["accuracy"]
 early_stopping_patience = 100
 loss = "categorical_crossentropy"
 
+
+def mnist_data_builder():
+    # Loading MNIST dataset
+    mnist_alternative_url = "https://github.com/amplab/datascience-sp14/raw/master/lab7/mldata/mnist-original.mat"
+    mnist_path = "./mnist-original.mat"
+
+    with urllib.request.urlopen(mnist_alternative_url) as url:
+        content = url.read()
+        # I'm guessing this would output the html source code ?
+        with open(mnist_path, "wb") as f:
+            print("Downloading data")
+            f.write(content)
+
+    # if not os.path.isfile(mnist_path):
+    #     response = urllib.urlopen(mnist_alternative_url)
+    #     with open(mnist_path, "wb") as f:
+    #         print("Downloading data")
+    #         content = response.read()
+    #         f.write(content)
+    mnist_raw = loadmat(mnist_path)
+    dataset = {
+        "data": mnist_raw["data"].T,
+        "target": mnist_raw["label"][0],
+        "COL_NAMES": ["label", "data"],
+        "DESCR": "mldata.org dataset: mnist-original",
+    }
+
+    return dataset
 
 def timing(_):
     global last_time
@@ -94,26 +128,19 @@ if __name__ == "__main__":
 
 
 
-    #dataset = fetch_mldata('MNIST original')
-
-    # Loading MNIST dataset
-    mnist_alternative_url = "https://github.com/amplab/datascience-sp14/raw/master/lab7/mldata/mnist-original.mat"
-    mnist_path = "./mnist-original.mat"
-    response = urllib.urlopen(mnist_alternative_url)
-    with open(mnist_path, "wb") as f:
-        content = response.read()
-        f.write(content)
-    mnist_raw = loadmat(mnist_path)
-    dataset = {
-        "data": mnist_raw["data"].T,
-        "target": mnist_raw["label"][0],
-        "COL_NAMES": ["label", "data"],
-        "DESCR": "mldata.org dataset: mnist-original",
-    }
+    dataset = None
+    if EXPERIMENT == 0:
+        print( "EXPERIMENT WITH MNIST DATASET")
+        dataset = mnist_data_builder()
+    # elif EXPERIMENT == 1:
+    #    print "EXPERIMENT WITH ..."
+    #    dataset = my_call()
+    else:
+        print("EXPERIMENT NOT IMPLEMENTED!")
 
     execution_id = time.time()
 
-    print "EXECUTION ID: " + str(execution_id)
+    print("EXECUTION ID: " + str(execution_id))
 
     # Loading parameters file
     configuration = Configuration(args.paramFile)
@@ -138,6 +165,7 @@ if __name__ == "__main__":
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
     # Defining operators...
+    #toolbox.register("evaluate", dummy_eval)
     toolbox.register("evaluate", eval_keras, ke=deepcopy(ke))
 
     toolbox.register("mate", complete_crossover, indpb=0.5, config=configuration)
@@ -145,7 +173,7 @@ if __name__ == "__main__":
                      prob_add_remove_layer=args.newpb, config=configuration)
     toolbox.register("select", tools.selBest)
 
-    print "Building population..."
+    print("Building population...")
     population = toolbox.population(n=args.lamb)
 
     stats = tools.Statistics(key=lambda ind: ind.fitness.values)
@@ -166,7 +194,7 @@ if __name__ == "__main__":
     pop, logbook = eaMuPlusLambdaModified(population=population, toolbox=toolbox, mu=args.mu,
                                           lambda_=args.lamb, cxpb=args.cxpb,
                                           mutpb=args.mutpb, ngen=args.ngen, stats=stats, halloffame=hof)
-    print '-------> TERMINADO'
+    print('-------> TERMINADO')
     csv_accuracy = "accuracy_training, accuracy_validation, accuracy_test\n"
     csv_accuracy = "accuracy_training, accuracy_validation, accuracy_test\n"
     file_individuals = ""
@@ -199,4 +227,4 @@ if __name__ == "__main__":
     with open('statistics' + str(execution_id) + '.txt', 'w') as outfile:
         outfile.write(str(logbook))
 
-    print "EXECUTION FINISHED, ID: " + str(execution_id)
+    print("EXECUTION FINISHED, ID: " + str(execution_id))

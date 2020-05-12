@@ -6,13 +6,25 @@ from math import sqrt, ceil, trunc
 import pandas as pd
 from numpy.ma import true_divide
 from sklearn import preprocessing
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import train_test_split
 
 from keras.models import Sequential
 from keras.layers import Dense, Reshape, Flatten, MaxPooling2D
 from keras.layers import Dropout, Convolution2D
 from keras import callbacks
-from keras.utils import np_utils
+#from keras.utils import np_utils
+from keras.utils import to_categorical
+from keras import backend as K
+
+
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
+
+
+import tensorflow as tf
+
+
 
 
 class KerasExecutor:
@@ -36,20 +48,26 @@ class KerasExecutor:
         le = preprocessing.LabelEncoder()
         le.fit(y)
         y_numeric = le.transform(y)
-        self.y_hot_encoding = np_utils.to_categorical(y_numeric).astype(float)
+        self.y_hot_encoding = to_categorical(y_numeric).astype(float)
+
 
         self.n_in = len(self.x[1])
         self.n_out = len(self.y_hot_encoding[1])
 
     def execute(self, individual):
 
+        tf.reset_default_graph()
+        K.clear_session()
+
+
+        #print(str(individual.toString))
         train, test, target_train, target_test = train_test_split(self.x, self.y_hot_encoding, test_size=self.test_size,
                                                                   random_state=int(time.time()))
 
         model = Sequential()
 
         list_layers_names = [l.type for l in individual.net_struct]
-        print ",".join(list_layers_names)
+        print(",".join(list_layers_names))
 
         for index, layer in enumerate(individual.net_struct):
 
@@ -60,8 +78,8 @@ class KerasExecutor:
                 model.add(Dropout(**layer.parameters))
 
             elif layer.type == "Convolution2D":
-                layer.parameters['nb_row'] = min(layer.parameters['nb_row'], model.output_shape[1])
-                layer.parameters['nb_col'] = min(layer.parameters['nb_col'], model.output_shape[2])
+                layer.parameters['kernel_size'] = min(layer.parameters['kernel_size'], model.output_shape[1])
+                #layer.parameters['nb_col'] = min(layer.parameters['nb_col'], model.output_shape[2])
                 model.add(Convolution2D(**layer.parameters))
 
             elif layer.type == "MaxPooling2D":
@@ -82,9 +100,10 @@ class KerasExecutor:
 
                 dividers = [k for k in range(2, int(sqrt(last_num_cols))) if last_num_cols % k == 0]
                 num_columns = max(dividers)
-                num_rows = last_num_cols / num_columns
+                num_rows = int(last_num_cols / num_columns)
 
                 if 'input_shape' in layer.parameters:
+
                     model.add(Reshape(target_shape=(num_rows, num_columns, 1),
                                       input_shape=layer.parameters["input_shape"]))
                 else:
@@ -101,11 +120,11 @@ class KerasExecutor:
 
         # Stop criteria definition
         callbacks_array = [
-            callbacks.EarlyStopping(monitor='val_acc', min_delta=0.00001, patience=self.early_stopping_patience, verbose=0,
+            callbacks.EarlyStopping(monitor='val_accuracy', min_delta=0.00001, patience=self.early_stopping_patience, verbose=0,
                                     mode='max')]
 
         # Running model
-        hist = model.fit(train, target_train, nb_epoch=individual.global_attributes.nb_epoch,
+        hist = model.fit(train, target_train, epochs=individual.global_attributes.epochs,
                          batch_size=individual.global_attributes.batch_size,
                          verbose=0, callbacks=callbacks_array, validation_data=(validation, target_validation)).__dict__
 
