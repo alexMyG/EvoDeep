@@ -14,6 +14,9 @@ For a full description of EvoDeep, please read the following publication:
 
 > Martín, Alejandro, et al. "EvoDeep: A new evolutionary approach for automatic Deep Neural Networks parametrisation." Journal of Parallel and Distributed Computing 117 (2018): 180-191.
 
+[Link]: https://www.researchgate.net/publication/320307342_EvoDeep_a_new_Evolutionary_approach_for_automatic_Deep_Neural_Networks_parametrisation
+
+
 ##### Requirements
 - EvoDeep has a series of dependencies. We recommend you to use a Virtual Environment:
     Install `virtualenv`:
